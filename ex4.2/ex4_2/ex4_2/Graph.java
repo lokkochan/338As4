@@ -1,4 +1,4 @@
-package ex4_1;
+package ex4_2;
 //Define a Graph class with the following characteristics:
 import java.io.BufferedReader;
 import java.io.File;
