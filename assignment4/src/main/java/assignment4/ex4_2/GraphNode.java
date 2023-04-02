@@ -1,7 +1,7 @@
-package ex4_2;
+package assignment4.ex4_2;
 import java.util.LinkedList;
 
-public class GraphNode{
+public class GraphNode implements Comparable<GraphNode>{
     private String value;
     private LinkedList<edges> neighbors;
 
@@ -10,14 +10,13 @@ public class GraphNode{
         this.neighbors = new LinkedList<edges>();
     }
 
-    public void addNeighbor(GraphNode node, int weight){
-        edges neighbor = new edges(node, weight);
-        neighbors.add(neighbor);
+    public void addNeighbor(edges edge){
+        neighbors.add(edge);
     }
 
     public void removeNeighbor(GraphNode node){
         for(edges e : neighbors){
-            if(e.getNode() == node){
+            if(e.getNode1() == node||e.getNode2() == node){
                 neighbors.remove(e);
                 break;
             }
@@ -29,5 +28,7 @@ public class GraphNode{
     public String getValue(){
         return value;
     }
-
+    public int compareTo(GraphNode node){
+        return this.value.compareTo(node.getValue());
+    }
 }

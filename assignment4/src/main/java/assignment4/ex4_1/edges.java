@@ -1,4 +1,4 @@
-package ex4_2;
+package assignment4.ex4_1;
 
 public class edges{
     private GraphNode node;

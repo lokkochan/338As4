@@ -1,4 +1,4 @@
-package ex4_1;
+package assignment4.ex4_1;
 import java.util.LinkedList;
 
 public class GraphNode{
