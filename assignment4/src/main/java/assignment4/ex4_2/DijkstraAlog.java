@@ -37,13 +37,20 @@ public class DijkstraAlog {
             endTime = System.nanoTime();
             fastTime.add(endTime - startTime);
         }
+        System.out.println("Average of slow time: "+average(slowTime));
+        System.out.println("Average of fast time: "+average(fastTime));
+        System.out.println("the max time of slow way is: "+max(slowTime));
+        System.out.println("the max time of fast way is: "+max(fastTime));
+        System.out.println("the min time of slow way is: "+min(slowTime));
+        System.out.println("the min time of fast way is: "+min(fastTime));
+
         //plot the graph
         try {
             Plot plt = Plot.create();
-            plt.plot().add(nodes, slowTime).label("slow").linestyle("--");
-            plt.plot().add(nodes, fastTime).label("fast").linestyle("-");
+            plt.plot().add(slowTime).label("slow").linestyle("--");
+            plt.plot().add(fastTime).label("fast").linestyle("-");
             plt.ylabel("time");
-            plt.title("time vs number of nodes");
+            plt.title("time vs nodes");
             plt.legend();
             plt.show();
         } catch (IOException e) {
@@ -53,7 +60,7 @@ public class DijkstraAlog {
         }
     }
 
-    private static HashMap<GraphNode,Integer> slowSP(GraphNode source, Graph graph){
+    private static void slowSP(GraphNode source, Graph graph){
         HashMap<GraphNode,Integer> distance = new HashMap<GraphNode,Integer>();
         ArrayList<GraphNode> unvisited = new ArrayList<GraphNode>();
         for(GraphNode node : graph.getNodes()){
@@ -61,19 +68,34 @@ public class DijkstraAlog {
             unvisited.add(node);
         }
         distance.put(source, 0);
-        while(unvisited.size() > 0){
-            GraphNode node = getMinDistanceNode(unvisited, distance);
-            unvisited.remove(node);
-            for(edges e : node.getNeighbors()){
-                GraphNode neighbor = e.getNode1() == node ? e.getNode2() : e.getNode1();
-                int weight = e.getWeight();
-                if(distance.get(neighbor) > distance.get(node) + weight){
-                    distance.put(neighbor, distance.get(node) + weight);
+        // main loop
+        for (int i = 0; i < graph.getNodes().size(); i++) {
+            // find the unvisited node with the lowest cost (inefficient)
+            double lowestCost = Double.POSITIVE_INFINITY;
+            GraphNode currentNode = null;
+            for (GraphNode node : graph.getNodes()) {
+                if (unvisited.contains(node) && distance.get(node) < lowestCost) {
+                    lowestCost = distance.get(node);
+                    currentNode = node;
+                }
+            }
+            if (currentNode == null) {
+                // there is no path to the remaining unvisited nodes
+                break;
+            }
+            // remove the current node from the unvisited list
+            unvisited.remove(currentNode);
+            // update the costs of the neighbors
+            for (edges edge : currentNode.getNeighbors()) {
+                GraphNode neighbor = edge.getNode1() == currentNode ? edge.getNode2() : edge.getNode1();
+                double newCost = distance.get(currentNode) + edge.getWeight();
+                if (newCost < distance.get(neighbor)) {
+                    distance.put(neighbor, (int) newCost);
                 }
             }
         }
-        return distance;
     }
+    
 
     private static GraphNode getMinDistanceNode(ArrayList<GraphNode> unvisited, HashMap<GraphNode,Integer> distance){
         GraphNode minNode = null;
@@ -88,30 +110,63 @@ public class DijkstraAlog {
         return minNode;
     }
 
-    private static HashMap<GraphNode,Integer> fastSP(GraphNode source, Graph graph){
+    private static void fastSP(GraphNode source, Graph graph){
         HashMap<GraphNode,Integer> distance = new HashMap<GraphNode,Integer>();
         ArrayList<GraphNode> unvisited = new ArrayList<GraphNode>();
-        for(GraphNode node : graph.getNodes()){
+        // initialization
+        for (GraphNode node : graph.getNodes()) {
             distance.put(node, Integer.MAX_VALUE);
             unvisited.add(node);
         }
-        //use the priority queue to store the nodes that have been visited
-        PriorityQueue<GraphNode> queue = new PriorityQueue<GraphNode>();
         distance.put(source, 0);
-        queue.add(source);
-        while(unvisited.size() > 0){
-            GraphNode node = queue.poll();
-            unvisited.remove(node);
-            for(edges e : node.getNeighbors()){
-                GraphNode neighbor = e.getNode1() == node ? e.getNode2() : e.getNode1();
-                int weight = e.getWeight();
-                if(distance.get(neighbor) > distance.get(node) + weight){
-                    distance.put(neighbor, distance.get(node) + weight);
-                    queue.add(neighbor);
+        PriorityQueue<GraphNode> pq = new PriorityQueue<>((n1, n2) -> Double.compare(distance.get(n1), distance.get(n2)));
+        pq.offer(source);
+        // main loop
+        while (!pq.isEmpty()) {
+            // extract the node with the lowest cost (efficient)
+            GraphNode currentNode = pq.poll();
+            if (!unvisited.contains(currentNode)) {
+                continue;
+            }
+            // remove the current node from the unvisited list
+            unvisited.remove(currentNode);
+            // update the costs of the neighbors
+            for (edges edge : currentNode.getNeighbors()) {
+                GraphNode neighbor = edge.getNode1() == currentNode ? edge.getNode2() : edge.getNode1();
+                double newCost = distance.get(currentNode) + edge.getWeight();
+                if (newCost < distance.get(neighbor)) {
+                    distance.put(neighbor, (int) newCost);
+                    pq.offer(neighbor);
                 }
             }
         }
-        return distance;
     }
 
+    private static double average(ArrayList<Long> list){
+        double sum = 0;
+        for(long i : list){
+            sum += i;
+        }
+        return sum/list.size();
+    }
+
+    private static long max(ArrayList<Long> list){
+        long max = 0;
+        for(long i : list){
+            if(i > max){
+                max = i;
+            }
+        }
+        return max;
+    }
+
+    private static long min(ArrayList<Long> list){
+        long min = list.get(0);
+        for(long i : list){
+            if(i < min){
+                min = i;
+            }
+        }
+        return min;
+    }
 }
